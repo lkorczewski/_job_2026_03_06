@@ -11,8 +11,8 @@ use PHPUnit\Framework\TestCase;
 
 final class SortedLinkedListTest extends TestCase
 {
-    #[DataProvider('provideCollectionState')]
-    public function testCollectionStateFromConstructor(
+    #[DataProvider('provideConstructor')]
+    public function testConstructor(
         array $initialValues,
         bool $expectedIsEmpty,
         int $expectedCount,
@@ -29,7 +29,7 @@ final class SortedLinkedListTest extends TestCase
         self::assertSame($expectedOrder, iterator_to_array($list));
     }
 
-    public static function provideCollectionState(): iterable
+    public static function provideConstructor(): iterable
     {
         yield 'empty-collection' => [[], true, 0, []];
         yield 'int-collection-sorted' => [[5, 1, 3, 2, 3], false, 5, [1, 2, 3, 3, 5]];
@@ -47,7 +47,17 @@ final class SortedLinkedListTest extends TestCase
         ];
     }
 
-    #[DataProvider('provideMixedListInvalid')]
+    public function testConstructorWithCustomComparator(): void
+    {
+        $list = new SortedLinkedList(
+            [2, 5, 1, 3],
+            static fn (int | string $left, int | string $right): int => $right <=> $left
+        );
+
+        self::assertSame([5, 3, 2, 1], $list->toArray());
+    }
+
+    #[DataProvider('provideMixedList')]
     public function testMixedListThrowsException(array $values): void
     {
         $this->expectException(InvalidArgumentException::class);
@@ -55,7 +65,7 @@ final class SortedLinkedListTest extends TestCase
         new SortedLinkedList($values);
     }
 
-    public static function provideMixedListInvalid(): iterable
+    public static function provideMixedList(): iterable
     {
         yield 'string-then-int' => [['pear', 4]];
         yield 'int-then-string' => [[1, 'orange']];
@@ -64,7 +74,7 @@ final class SortedLinkedListTest extends TestCase
     }
 
     #[DataProvider('provideInsert')]
-    public function testInsertIntoSortedList(
+    public function testInsert(
         array $input,
         int | string $toInsert,
         array $expectedAfter
@@ -97,7 +107,7 @@ final class SortedLinkedListTest extends TestCase
         ];
     }
 
-    #[DataProvider('provideInsertInvalidType')]
+    #[DataProvider('provideInsertWithInvalidType')]
     public function testInsertWithInvalidTypeThrowsException(
         array $initialValues,
         int | string $invalidValue
@@ -108,14 +118,14 @@ final class SortedLinkedListTest extends TestCase
         $list->insert($invalidValue);
     }
 
-    public static function provideInsertInvalidType(): iterable
+    public static function provideInsertWithInvalidType(): iterable
     {
         yield 'insert-string-into-int-collection' => [[1, 2, 3], 'apple'];
         yield 'insert-int-into-string-collection' => [['apple', 'banana'], 1];
     }
 
     #[DataProvider('provideRemove')]
-    public function testRemoveFromSortedList(
+    public function testRemove(
         array $input,
         int | string $toRemove,
         array $expectedAfter,
@@ -171,7 +181,7 @@ final class SortedLinkedListTest extends TestCase
     }
 
     #[DataProvider('provideRemoveDuplicate')]
-    public function testRemoveDuplicateFromSortedList(
+    public function testRemoveDuplicate(
         array $input,
         int | string $toRemove,
         array $expectedAfter,
@@ -197,7 +207,7 @@ final class SortedLinkedListTest extends TestCase
     }
 
     #[DataProvider('provideContains')]
-    public function testContainsInSortedList(
+    public function testContains(
         array $input,
         int | string $searchedValue,
         bool $expected
@@ -222,8 +232,23 @@ final class SortedLinkedListTest extends TestCase
         yield 'strings-case-sensitive-missing-lowercase' => [['Apple'], 'apple', false];
     }
 
+    public function testUsesCustomComparatorForContainsAndRemoveEquality(): void
+    {
+        $list = new SortedLinkedList(
+            ['Banana', 'apple'],
+            static fn (int | string $left, int | string $right): int => strcasecmp(
+                (string) $left,
+                (string) $right
+            )
+        );
+
+        self::assertTrue($list->contains('APPLE'));
+        self::assertTrue($list->remove('APPLE'));
+        self::assertSame(['Banana'], $list->toArray());
+    }
+
     #[DataProvider('provideClear')]
-    public function testClearResetsListState(array $initialValues): void
+    public function testClear(array $initialValues): void
     {
         $list = new SortedLinkedList($initialValues);
 
@@ -242,7 +267,7 @@ final class SortedLinkedListTest extends TestCase
         yield 'clear-non-empty-string-list' => [['pear', 'apple']];
     }
 
-    #[DataProvider('provideClearTypeReset')]
+    #[DataProvider('provideClearResetsAcceptedType')]
     public function testClearResetsAcceptedType(
         array $initialValues,
         int | string $valueAfterClear,
@@ -258,7 +283,7 @@ final class SortedLinkedListTest extends TestCase
         self::assertSame(1, $list->count());
     }
 
-    public static function provideClearTypeReset(): iterable
+    public static function provideClearResetsAcceptedType(): iterable
     {
         yield 'int-to-string-after-clear' => [[3, 1, 2], 'apple', ['apple']];
         yield 'string-to-int-after-clear' => [['pear', 'apple'], 7, [7]];

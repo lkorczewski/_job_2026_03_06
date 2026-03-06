@@ -4,25 +4,34 @@ declare(strict_types=1);
 
 namespace App;
 
+use Closure;
 use Countable;
 use InvalidArgumentException;
-use IteratorAggregate;
-use Traversable;
+use Iterator;
 
 /**
- * @implements IteratorAggregate<int, int | string>
+ * @implements Iterator<int, int | string>
  */
-final class SortedLinkedList implements Countable, IteratorAggregate
+final class SortedLinkedList implements Countable, Iterator
 {
     private ?ListNode $head = null;
     /** @var int<0, max> */
     private int $size = 0;
+    /** @var Closure(int | string, int | string): int */
+    private Closure $comparator;
+    private ?ListNode $iteratorNode = null;
+    /** @var int<0, max> */
+    private int $iteratorKey = 0;
 
     /**
      * @param iterable<int | string> $values
      */
-    public function __construct(iterable $values = [])
+    public function __construct(iterable $values = [], ?callable $comparator = null)
     {
+        $this->comparator = $comparator !== null
+            ? $comparator(...)
+            : static fn (int | string $left, int | string $right): int => $left <=> $right;
+
         foreach ($values as $value) {
             $this->insert($value);
         }
@@ -40,7 +49,7 @@ final class SortedLinkedList implements Countable, IteratorAggregate
         $previous = null;
         $current = $this->head;
 
-        while ($current !== null && $current->value <= $value) {
+        while ($current !== null && ($this->comparator)($current->value, $value) <= 0) {
             $previous = $current;
             $current = $current->next;
         }
@@ -64,12 +73,12 @@ final class SortedLinkedList implements Countable, IteratorAggregate
         $previous = null;
         $current = $this->head;
 
-        while ($current !== null && $current->value < $value) {
+        while ($current !== null && ($this->comparator)($current->value, $value) < 0) {
             $previous = $current;
             $current = $current->next;
         }
 
-        if ($current !== null && $current->value === $value) {
+        if ($current !== null && ($this->comparator)($current->value, $value) === 0) {
             if ($previous === null) {
                 $this->head = $current->next;
             } else {
@@ -92,21 +101,19 @@ final class SortedLinkedList implements Countable, IteratorAggregate
 
         $current = $this->head;
 
-        while ($current !== null && $current->value < $value) {
+        while ($current !== null && ($this->comparator)($current->value, $value) < 0) {
             $current = $current->next;
         }
 
-        if ($current !== null && $current->value === $value) {
-            return true;
-        }
-
-        return false;
+        return $current !== null && ($this->comparator)($current->value, $value) === 0;
     }
 
     public function clear(): void
     {
         $this->head = null;
         $this->size = 0;
+        $this->iteratorNode = null;
+        $this->iteratorKey = 0;
     }
 
     /**
@@ -140,17 +147,38 @@ final class SortedLinkedList implements Countable, IteratorAggregate
         return $this->size;
     }
 
-    # IteratorAggregate interface
+    # Iterator interface
 
-    public function getIterator(): Traversable
+    public function current(): string | int | null
     {
-        $current = $this->head;
+        return $this->iteratorNode?->value;
+    }
 
-        while ($current !== null) {
-            yield $current->value;
-            $current = $current->next;
+    public function next(): void
+    {
+        if ($this->iteratorNode !== null) {
+            $this->iteratorNode = $this->iteratorNode->next;
+            $this->iteratorKey++;
         }
     }
+
+    public function key(): int
+    {
+        return $this->iteratorKey;
+    }
+
+    public function valid(): bool
+    {
+        return $this->iteratorNode !== null;
+    }
+
+    public function rewind(): void
+    {
+        $this->iteratorNode = $this->head;
+        $this->iteratorKey = 0;
+    }
+
+    # Magical methods
 
     public function __clone(): void
     {
