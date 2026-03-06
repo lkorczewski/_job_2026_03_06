@@ -33,7 +33,12 @@ final class SortedLinkedListTest extends TestCase
     {
         yield 'empty-collection' => [[], true, 0, []];
         yield 'int-collection-sorted' => [[5, 1, 3, 2, 3], false, 5, [1, 2, 3, 3, 5]];
-        yield 'string-collection-sorted' => [['pear', 'apple', 'orange', 'apple'], false, 4, ['apple', 'apple', 'orange', 'pear']];
+        yield 'string-collection-sorted' => [
+            ['pear', 'apple', 'orange', 'apple'],
+            false,
+            4,
+            ['apple', 'apple', 'orange', 'pear'],
+        ];
     }
 
     #[DataProvider('provideMixedListInvalid')]
@@ -79,7 +84,11 @@ final class SortedLinkedListTest extends TestCase
         yield 'strings-insert-at-start' => [['banana', 'pear'], 'apple', ['apple', 'banana', 'pear']];
         yield 'strings-insert-in-middle' => [['apple', 'pear'], 'banana', ['apple', 'banana', 'pear']];
         yield 'strings-insert-at-end' => [['apple', 'pear'], 'orange', ['apple', 'orange', 'pear']];
-        yield 'strings-insert-duplicate' => [['apple', 'banana', 'banana'], 'banana', ['apple', 'banana', 'banana', 'banana']];
+        yield 'strings-insert-duplicate' => [
+            ['apple', 'banana', 'banana'],
+            'banana',
+            ['apple', 'banana', 'banana', 'banana'],
+        ];
     }
 
     #[DataProvider('provideInsertInvalidType')]
@@ -129,8 +138,18 @@ final class SortedLinkedListTest extends TestCase
         yield 'strings-remove-existing-in-middle' => [['pear', 'apple', 'orange'], 'orange', ['apple', 'pear'], true];
         yield 'strings-remove-existing-at-end' => [['pear', 'apple', 'orange'], 'pear', ['apple', 'orange'], true];
         yield 'strings-remove-single-element' => [['pear'], 'pear', [], true];
-        yield 'strings-remove-missing' => [['pear', 'apple', 'orange'], 'banana', ['apple', 'orange', 'pear'], false];
-        yield 'strings-remove-int-type-mismatch' => [['pear', 'apple', 'orange'], 1, ['apple', 'orange', 'pear'], false];
+        yield 'strings-remove-missing' => [
+            ['pear', 'apple', 'orange'],
+            'banana',
+            ['apple', 'orange', 'pear'],
+            false,
+        ];
+        yield 'strings-remove-int-type-mismatch' => [
+            ['pear', 'apple', 'orange'],
+            1,
+            ['apple', 'orange', 'pear'],
+            false,
+        ];
     }
 
     #[DataProvider('provideRemoveDuplicate')]
@@ -151,7 +170,12 @@ final class SortedLinkedListTest extends TestCase
     public static function provideRemoveDuplicate(): iterable
     {
         yield 'ints-remove-first-duplicate-only' => [[2, 2, 1, 2, 4], 2, [1, 2, 2, 4], true];
-        yield 'strings-remove-first-duplicate-only' => [['kiwi', 'kiwi', 'pear', 'apple'], 'kiwi', ['apple', 'kiwi', 'pear'], true];
+        yield 'strings-remove-first-duplicate-only' => [
+            ['kiwi', 'kiwi', 'pear', 'apple'],
+            'kiwi',
+            ['apple', 'kiwi', 'pear'],
+            true,
+        ];
     }
 
     #[DataProvider('provideContains')]
@@ -243,6 +267,12 @@ final class SortedLinkedListTest extends TestCase
     {
         yield 'clone-empty-list' => [[], 1, 'apple', [1], ['apple']];
         yield 'clone-int-list' => [[5, 1, 3], 2, 4, [1, 2, 3, 5], [1, 3, 4, 5]];
-        yield 'clone-string-list' => [['pear', 'apple', 'orange'], 'banana', 'kiwi', ['apple', 'banana', 'orange', 'pear'], ['apple', 'kiwi', 'orange', 'pear']];
+        yield 'clone-string-list' => [
+            ['pear', 'apple', 'orange'],
+            'banana',
+            'kiwi',
+            ['apple', 'banana', 'orange', 'pear'],
+            ['apple', 'kiwi', 'orange', 'pear'],
+        ];
     }
 }
