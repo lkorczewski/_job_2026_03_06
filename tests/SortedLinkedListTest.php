@@ -6,6 +6,7 @@ namespace Tests;
 
 use App\SortedLinkedList;
 use InvalidArgumentException;
+use Iterator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -287,6 +288,33 @@ final class SortedLinkedListTest extends TestCase
     {
         yield 'int-to-string-after-clear' => [[3, 1, 2], 'apple', ['apple']];
         yield 'string-to-int-after-clear' => [['pear', 'apple'], 7, [7]];
+    }
+
+    public function testManualIteratorMethods(): void
+    {
+        $list = new SortedLinkedList([5, 1, 3]);
+        $iterator = $list->getIterator();
+        self::assertInstanceOf(Iterator::class, $iterator);
+
+        $iterator->rewind();
+        self::assertTrue($iterator->valid());
+        self::assertSame(0, $iterator->key());
+        self::assertSame(1, $iterator->current());
+
+        $iterator->next();
+        self::assertTrue($iterator->valid());
+        self::assertSame(1, $iterator->key());
+        self::assertSame(3, $iterator->current());
+
+        $iterator->next();
+        self::assertTrue($iterator->valid());
+        self::assertSame(2, $iterator->key());
+        self::assertSame(5, $iterator->current());
+
+        $iterator->next();
+        self::assertFalse($iterator->valid());
+        self::assertNull($iterator->key());
+        self::assertNull($iterator->current());
     }
 
     #[DataProvider('provideClone')]

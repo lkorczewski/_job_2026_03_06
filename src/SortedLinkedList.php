@@ -7,21 +7,19 @@ namespace App;
 use Closure;
 use Countable;
 use InvalidArgumentException;
-use Iterator;
+use IteratorAggregate;
+use Traversable;
 
 /**
- * @implements Iterator<int, int | string>
+ * @implements IteratorAggregate<int, int | string>
  */
-final class SortedLinkedList implements Countable, Iterator
+final class SortedLinkedList implements Countable, IteratorAggregate
 {
     private ?ListNode $head = null;
     /** @var int<0, max> */
     private int $size = 0;
     /** @var Closure(int | string, int | string): int */
     private Closure $comparator;
-    private ?ListNode $iteratorNode = null;
-    /** @var int<0, max> */
-    private int $iteratorKey = 0;
 
     /**
      * @param iterable<int | string> $values
@@ -112,8 +110,6 @@ final class SortedLinkedList implements Countable, Iterator
     {
         $this->head = null;
         $this->size = 0;
-        $this->iteratorNode = null;
-        $this->iteratorKey = 0;
     }
 
     /**
@@ -147,35 +143,16 @@ final class SortedLinkedList implements Countable, Iterator
         return $this->size;
     }
 
-    # Iterator interface
+    # IteratorAggregate interface
 
-    public function current(): string | int | null
+    public function getIterator(): Traversable
     {
-        return $this->iteratorNode?->value;
-    }
+        $current = $this->head;
 
-    public function next(): void
-    {
-        if ($this->iteratorNode !== null) {
-            $this->iteratorNode = $this->iteratorNode->next;
-            $this->iteratorKey++;
+        while ($current !== null) {
+            yield $current->value;
+            $current = $current->next;
         }
-    }
-
-    public function key(): int
-    {
-        return $this->iteratorKey;
-    }
-
-    public function valid(): bool
-    {
-        return $this->iteratorNode !== null;
-    }
-
-    public function rewind(): void
-    {
-        $this->iteratorNode = $this->head;
-        $this->iteratorKey = 0;
     }
 
     # Magical methods

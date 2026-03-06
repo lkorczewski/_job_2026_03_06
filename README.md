@@ -37,8 +37,30 @@ foreach ($list as $value) {
 - A single list instance accepts one value type only:
   - all `int` values, or
   - all `string` values.
-- Inserting a different type later throws `InvalidArgumentException`.
+- Inserting a value of different type later throws `InvalidArgumentException`.
 - `remove()` and `contains()` return `false` for mismatched types.
+
+## Custom Comparator
+
+You can pass a custom comparator as the second constructor argument:
+
+```php
+$list = new SortedLinkedList(
+    ['Banana', 'apple', 'orange'],
+    static fn (int|string $left, int|string $right): int => strcasecmp((string) $left, (string) $right)
+);
+```
+
+Comparator contract:
+
+- Return `< 0` when `$left` should be before `$right`.
+- Return `0` when values are considered equal.
+- Return `> 0` when `$left` should be after `$right`.
+
+Notes:
+
+- If no comparator is provided, default PHP ordering (`<=>`) is used.
+- `contains()` and `remove()` use comparator equality (`compare(...) === 0`), not strict `===` value equality.
 
 ## Development
 
