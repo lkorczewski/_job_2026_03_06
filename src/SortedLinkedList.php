@@ -17,7 +17,6 @@ final class SortedLinkedList implements Countable, IteratorAggregate
     private ?ListNode $head = null;
     /** @var int<0, max> */
     private int $size = 0;
-    private ?string $valueType = null;
 
     /**
      * @param iterable<int | string> $values
@@ -29,33 +28,19 @@ final class SortedLinkedList implements Countable, IteratorAggregate
         }
     }
 
-    public function __clone(): void
-    {
-        if ($this->head === null) {
-            return;
-        }
-
-        $source = $this->head;
-        $this->head = new ListNode($source->value);
-        $target = $this->head;
-        $source = $source->next;
-
-        while ($source !== null) {
-            $target->next = new ListNode($source->value);
-            $target = $target->next;
-            $source = $source->next;
-        }
-    }
-
     public function insert(int | string $value): void
     {
-        $this->assertValueType($value);
+        if ($this->head !== null && gettype($value) !== gettype($this->head->value)) {
+            throw new InvalidArgumentException(
+                sprintf('This list accepts only %s values.', gettype($this->head->value))
+            );
+        }
 
         $newNode = new ListNode($value);
         $previous = null;
         $current = $this->head;
 
-        while ($current !== null && $this->compareValues($current->value, $value) <= 0) {
+        while ($current !== null && $current->value <= $value) {
             $previous = $current;
             $current = $current->next;
         }
@@ -72,14 +57,14 @@ final class SortedLinkedList implements Countable, IteratorAggregate
 
     public function remove(int | string $value): bool
     {
-        if (gettype($value) !== $this->valueType) {
+        if (gettype($value) !== gettype($this->head?->value)) {
             return false;
         }
 
         $previous = null;
         $current = $this->head;
 
-        while ($current !== null && $this->compareValues($current->value, $value) < 0) {
+        while ($current !== null && $current->value < $value) {
             $previous = $current;
             $current = $current->next;
         }
@@ -92,9 +77,6 @@ final class SortedLinkedList implements Countable, IteratorAggregate
             }
 
             $this->size--;
-            if ($this->size === 0) {
-                $this->valueType = null;
-            }
 
             return true;
         }
@@ -104,13 +86,13 @@ final class SortedLinkedList implements Countable, IteratorAggregate
 
     public function contains(int | string $value): bool
     {
-        if ($this->valueType !== null && gettype($value) !== $this->valueType) {
+        if (gettype($value) !== gettype($this->head?->value)) {
             return false;
         }
 
         $current = $this->head;
 
-        while ($current !== null && $this->compareValues($current->value, $value) < 0) {
+        while ($current !== null && $current->value < $value) {
             $current = $current->next;
         }
 
@@ -125,7 +107,6 @@ final class SortedLinkedList implements Countable, IteratorAggregate
     {
         $this->head = null;
         $this->size = 0;
-        $this->valueType = null;
     }
 
     /**
@@ -171,25 +152,21 @@ final class SortedLinkedList implements Countable, IteratorAggregate
         }
     }
 
-    private function compareValues(int | string $left, int | string $right): int
+    public function __clone(): void
     {
-        return $left <=> $right;
-    }
-
-    private function assertValueType(int | string $value): void
-    {
-        $type = gettype($value);
-
-        if ($this->valueType === null) {
-            $this->valueType = $type;
-
+        if ($this->head === null) {
             return;
         }
 
-        if ($type !== $this->valueType) {
-            throw new InvalidArgumentException(
-                sprintf('This list accepts only %s values.', $this->valueType)
-            );
+        $source = $this->head;
+        $this->head = new ListNode($source->value);
+        $target = $this->head;
+        $source = $source->next;
+
+        while ($source !== null) {
+            $target->next = new ListNode($source->value);
+            $target = $target->next;
+            $source = $source->next;
         }
     }
 }
