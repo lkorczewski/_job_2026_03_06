@@ -39,6 +39,12 @@ final class SortedLinkedListTest extends TestCase
             4,
             ['apple', 'apple', 'orange', 'pear'],
         ];
+        yield 'string-collection-sorted-mixed-case' => [
+            ['banana', 'Apple', 'apple', 'Banana'],
+            false,
+            4,
+            ['Apple', 'Banana', 'apple', 'banana'],
+        ];
     }
 
     #[DataProvider('provideMixedListInvalid')]
@@ -150,6 +156,18 @@ final class SortedLinkedListTest extends TestCase
             ['apple', 'orange', 'pear'],
             false,
         ];
+        yield 'strings-remove-lowercase-does-not-remove-uppercase' => [
+            ['Apple'],
+            'apple',
+            ['Apple'],
+            false,
+        ];
+        yield 'strings-remove-lowercase-from-case-variant-pair' => [
+            ['Apple', 'apple'],
+            'apple',
+            ['Apple'],
+            true,
+        ];
     }
 
     #[DataProvider('provideRemoveDuplicate')]
@@ -200,6 +218,8 @@ final class SortedLinkedListTest extends TestCase
         yield 'strings-missing' => [['pear', 'apple', 'orange'], 'banana', false];
         yield 'strings-mismatched-int' => [['5', '1', '3', '2'], 1, false];
         yield 'strings-duplicate-existing' => [['kiwi', 'kiwi', 'pear'], 'kiwi', true];
+        yield 'strings-case-sensitive-existing-uppercase' => [['Apple'], 'Apple', true];
+        yield 'strings-case-sensitive-missing-lowercase' => [['Apple'], 'apple', false];
     }
 
     #[DataProvider('provideClear')]
